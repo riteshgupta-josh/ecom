@@ -20,7 +20,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"id\":\"1\",\r\n    \"orderStatus\":\"Cancelled\"\r\n}",
+					"raw": "{\r\n    \"id\":\"1\",\r\n    \"orderStatus\":\"Placed\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -111,7 +111,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"id\": \"1\",\r\n    \"productDetails\": [\r\n        {\r\n            \"quantity\": 1,\r\n            \"productId\": 1\r\n        },\r\n        {\r\n            \"quantity\": 4,\r\n            \"productId\": 2\r\n        },\r\n        {\r\n            \"quantity\": 1,\r\n            \"productId\": 3\r\n        }\r\n    ],\r\n    \"totalAmount\": \"2000\",\r\n    \"orderStatus\": \"Placed\"\r\n}",
+					"raw": "{\r\n    \"id\": \"1\",\r\n    \"productDetails\": [\r\n        {\r\n            \"quantity\": 1,\r\n            \"productId\": 1\r\n        },\r\n        {\r\n            \"quantity\": 4,\r\n            \"productId\": 2\r\n        },\r\n        {\r\n            \"quantity\": 1,\r\n            \"productId\": 3\r\n        }\r\n    ],\r\n    \"orderStatus\": \"Placed\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -139,7 +139,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8000/product/details/1",
+					"raw": "http://localhost:8000/product/details/4",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -148,7 +148,7 @@
 					"path": [
 						"product",
 						"details",
-						"1"
+						"4"
 					]
 				}
 			},
@@ -161,7 +161,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"id\": \"3\",\r\n    \"productName\": \"Watch\",\r\n    \"quantity\": 12,\r\n    \"price\": \"5800\",\r\n    \"category\": \"Premium\"\r\n}",
+					"raw": "{\r\n    \"id\": \"2\",\r\n    \"productName\": \"Trouser\",\r\n    \"quantity\": 8,\r\n    \"price\": \"580\",\r\n    \"category\": \"Premium\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
