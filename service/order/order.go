@@ -4,93 +4,103 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
-	"github.com/riteshgupta-josh/models"
-	"github.com/riteshgupta-josh/validator"
+	"ecom/logger"
+	"ecom/models"
+	"ecom/validator"
+
+	"ecom/utils"
+
 	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 )
 
-var order = models.InitiateOrderList()
-var product = models.InitiateProductList()
-
-func GetAllOrderDetailsOfCustomer(c *gin.Context) {
-	cid := c.Param("cid")
-
-	if _, ok := order.OrderList[cid]; ok {
-
-		c.JSON(http.StatusOK, order.OrderList[cid])
-	} else {
-		c.JSON(http.StatusNotFound, gin.H{"message": "Order not found"})
-	}
-
+type Order struct {
+	orderDataStore   *models.Order
+	productDataStore *models.Product
 }
-func GetOrderDetailsById(c *gin.Context) {
-	id := c.Param("id")
 
-	if _, ok := order.OrderList[id]; ok {
-		c.JSON(http.StatusOK, order.OrderList[id])
-	} else {
-		c.JSON(http.StatusNotFound, gin.H{"message": "Order not found"})
+func NewOrder() OrderIntf {
+	return &Order{
+		orderDataStore:   models.InitiateOrderList(),
+		productDataStore: models.InitiateProductList(),
 	}
-
 }
-func AddOrderDetails(c *gin.Context) {
-	requestBody := models.OrderRequest{}
-	if err := c.BindJSON(&requestBody); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
 
-	if order.OrderList == nil {
-		order.OrderList = make(map[string]models.OrderRequest)
+func (orderSVC *Order) GetAllOrderDetailsOfCustomer(cid string) []models.OrderRequest {
+	ordersList := []models.OrderRequest{}
+	for _, orderItem := range orderSVC.orderDataStore.OrderList {
+		if orderItem.CustomerId == cid {
+			ordersList = append(ordersList, orderItem)
+		}
 	}
-	if _, ok := order.OrderList[cast.ToString(requestBody.Id)]; !ok {
+	return ordersList
+}
+
+func (orderSVC *Order) AddOrderDetails(requestBody models.OrderRequest) models.AddOrderResponse {
+
+	if orderSVC.orderDataStore.OrderList == nil {
+		orderSVC.orderDataStore.OrderList = make(map[string]models.OrderRequest)
+	}
+	if _, ok := orderSVC.orderDataStore.OrderList[cast.ToString(requestBody.Id)]; !ok {
 		var count int
 		var order_total_amount int
 		for _, requestValue := range requestBody.ProductDetails {
 
-			if productValue, ok := product.ProductList[cast.ToString(requestValue.ProductID)]; ok {
+			if productValue, ok := orderSVC.productDataStore.ProductList[cast.ToString(requestValue.ProductID)]; ok {
 
 				if requestValue.Quantity > viper.GetInt("PRODUCT_MAX_QUANTITY") {
-					c.JSON(http.StatusBadRequest, gin.H{"message": "Cannot order more than " + cast.ToString(viper.GetInt("PRODUCT_MAX_QUANTITY"))})
-					return
+					logger.E("Cannot order more than " + cast.ToString(viper.GetInt("PRODUCT_MAX_QUANTITY")))
+					return models.AddOrderResponse{
+						Code: http.StatusBadRequest,
+						Msg:  "Cannot order more than " + cast.ToString(viper.GetInt("PRODUCT_MAX_QUANTITY")),
+					}
 
 				} else if requestValue.Quantity > productValue.Quantity {
-					c.JSON(http.StatusBadRequest, gin.H{"message": "Out of Stock"})
-					return
+					logger.E("Out of Stock")
+					return models.AddOrderResponse{
+						Code: http.StatusBadRequest,
+						Msg:  "Out of Stock",
+					}
 				}
 				if productValue.Category == "Premium" {
 					count++
 				}
 				order_total_amount += cast.ToInt(productValue.Price) * requestValue.Quantity
 				productValue.Quantity -= requestValue.Quantity
-				product.ProductList[cast.ToString(requestValue.ProductID)] = productValue
+				orderSVC.productDataStore.ProductList[cast.ToString(requestValue.ProductID)] = productValue
 
 			} else {
-				c.JSON(http.StatusNotFound, gin.H{"message": "Product not found"})
-				return
+				logger.E("Product not found")
+				return models.AddOrderResponse{
+					Code: http.StatusBadRequest,
+					Msg:  "Product not found",
+				}
 			}
 		}
 		if count > 2 {
 			requestBody.TotalAmount = cast.ToString(cast.ToFloat32(requestBody.TotalAmount) - cast.ToFloat32(requestBody.TotalAmount)*0.1)
 		}
+		requestBody.Id = utils.GenerateUUID()
 		requestBody.OrderDate = time.Now()
 		requestBody.TotalAmount = cast.ToString(order_total_amount)
-		order.OrderList[requestBody.Id] = requestBody
-		c.JSON(http.StatusOK, gin.H{"message": "Successfully Added Order"})
+		orderSVC.orderDataStore.OrderList[requestBody.Id] = requestBody
+		logger.I("Successfully Added Order")
+		return models.AddOrderResponse{
+			Code:    http.StatusOK,
+			OrderId: requestBody.Id,
+			Msg:     "Successfully Added Order",
+		}
 	} else {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Duplicate Order ID"})
+		logger.E("Duplicate Order ID")
+		return models.AddOrderResponse{
+			Code: http.StatusBadRequest,
+			Msg:  "Duplicate Order ID",
+		}
 	}
 }
-func UpdateOrderStatus(c *gin.Context) {
-	requestStatusBody := models.OrderUpdateRequest{}
-	if err := c.BindJSON(&requestStatusBody); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-
-	if orderValue, ok := order.OrderList[requestStatusBody.Id]; ok {
+func (orderSVC *Order) UpdateOrderStatus(requestStatusBody models.OrderUpdateRequest) models.UpdateOrderResponse {
+	logger.I(requestStatusBody.OrderStatus)
+	if orderValue, ok := orderSVC.orderDataStore.OrderList[requestStatusBody.Id]; ok {
 		if validator.OrderStatusValid(requestStatusBody.OrderStatus) {
 
 			if requestStatusBody.OrderStatus != "Placed" {
@@ -99,25 +109,39 @@ func UpdateOrderStatus(c *gin.Context) {
 					orderValue.DispatchDate = time.Now()
 				} else if requestStatusBody.OrderStatus == "Cancelled" {
 					for _, productDetails := range orderValue.ProductDetails {
-						if productValue, ok := product.ProductList[cast.ToString(productDetails.ProductID)]; ok {
+						if productValue, ok := orderSVC.productDataStore.ProductList[cast.ToString(productDetails.ProductID)]; ok {
 							productValue.Quantity += productDetails.Quantity
 							// fmt.Println(productValue.Quantity)
-							product.ProductList[cast.ToString(productDetails.ProductID)] = productValue
+							orderSVC.productDataStore.ProductList[cast.ToString(productDetails.ProductID)] = productValue
 						}
 					}
 				}
 				orderValue.OrderStatus = requestStatusBody.OrderStatus
-				order.OrderList[cast.ToString(requestStatusBody.Id)] = orderValue
-				c.JSON(http.StatusOK, gin.H{"message": "Successfully Updated Order"})
+				orderSVC.orderDataStore.OrderList[cast.ToString(requestStatusBody.Id)] = orderValue
+				logger.I("Successfully Updated the order for order id : " + requestStatusBody.Id)
+				return models.UpdateOrderResponse{
+					Code: http.StatusOK,
+					Msg:  "Successfully Updated the order for order id : " + requestStatusBody.Id,
+				}
 			} else {
-				c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body. Please request to change the status for `Dispatched`, `Cancelled`, `Completed`"})
+				logger.E("Invalid request body. Please request to change the status for `Dispatched`, `Cancelled`, `Completed`")
+				return models.UpdateOrderResponse{
+					Code: http.StatusBadRequest,
+					Msg:  "Invalid request body. Please request to change the status for `Dispatched`, `Cancelled`, `Completed`",
+				}
 			}
 		} else {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body. Please request to change the status for `Dispatched`, `Cancelled`, `Completed` and `Placed`"})
+			logger.E("Invalid request body. Please request to change the status for `Dispatched`, `Cancelled`, `Completed` and `Placed`")
+			return models.UpdateOrderResponse{
+				Code: http.StatusBadRequest,
+				Msg:  "Invalid request body. Please request to change the status for `Dispatched`, `Cancelled`, `Completed` and `Placed`",
+			}
 		}
 	} else {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Order not found"})
-		return
+		logger.E("Order not found")
+		return models.UpdateOrderResponse{
+			Code: http.StatusBadRequest,
+			Msg:  "Order not found",
+		}
 	}
-
 }

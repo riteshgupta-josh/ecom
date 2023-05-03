@@ -1,20 +1,20 @@
 package handler
 
 import (
-	"github.com/gin-gonic/gin"
+	productController "ecom/controllers/product"
+	"ecom/logger"
+	productService "ecom/service/product"
 
-	"github.com/riteshgupta-josh/logger"
-	service "github.com/riteshgupta-josh/service/product"
-	// productServices "github.com/riteshgupta-josh/service"
+	"github.com/gin-gonic/gin"
 )
 
 func ProductHandler(router *gin.Engine) {
 	funcName := "handler.ProductHandler"
 	logger.I(funcName)
-	product := router.Group("/product")
+	productSVC := productService.NewProduct()
+	product := router.Group("")
 	{
-		product.GET("/alldetails", service.GetAllProductDetails)
-		product.GET("/details/:id", service.GetProductDetailsById)
-		product.POST("/add", service.AddProductDetails)
+		product.GET("/product", productController.GetAllProductDetails(productSVC))
+		product.POST("/product", productController.AddProductDetails(productSVC))
 	}
 }

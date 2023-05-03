@@ -5,10 +5,16 @@ type Product struct {
 }
 type ProductRequest struct {
 	Id          string `json:"id"`
-	ProductName string `json:"productName"`
-	Quantity    int    `json:"quantity"`
-	Price       string `json:"price"`
+	ProductName string `json:"productName" binding:"required"`
+	Quantity    int    `json:"quantity" binding:"required,min=1" `
+	Price       string `json:"price" binding:"required,min=1"`
 	Category    string `json:"category"`
+}
+
+type AddProductResponse struct {
+	Code      int    `json:"code"`
+	Msg       string `json:"msg"`
+	ProductId string `json:"productId"`
 }
 
 var Product_List *Product

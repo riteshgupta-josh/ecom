@@ -6,21 +6,13 @@
 	},
 	"item": [
 		{
-			"name": "New Request",
-			"request": {
-				"method": "GET",
-				"header": []
-			},
-			"response": []
-		},
-		{
 			"name": "Order Update Status",
 			"request": {
-				"method": "POST",
+				"method": "PUT",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"id\":\"1\",\r\n    \"orderStatus\":\"Placed\"\r\n}",
+					"raw": "{\r\n    \"id\":\"4e8aa902-e53e-424c-978b-be92f215b1b8\",\r\n    \"orderStatus\":\"Placed\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -28,7 +20,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8000/order/updateStatus",
+					"raw": "http://localhost:8000/order/status",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -36,7 +28,7 @@
 					"port": "8000",
 					"path": [
 						"order",
-						"updateStatus"
+						"status"
 					]
 				}
 			},
@@ -48,15 +40,14 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8000/product/alldetails",
+					"raw": "http://localhost:8000/product",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "8000",
 					"path": [
-						"product",
-						"alldetails"
+						"product"
 					]
 				}
 			},
@@ -68,7 +59,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost:8000/order/customerdetails/1",
+					"raw": "http://localhost:8000/order/customer/1",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -76,28 +67,7 @@
 					"port": "8000",
 					"path": [
 						"order",
-						"customerdetails",
-						"1"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Specific order details",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:8000/order/details/1",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8000",
-					"path": [
-						"order",
-						"details",
+						"customer",
 						"1"
 					]
 				}
@@ -111,7 +81,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"id\": \"1\",\r\n    \"productDetails\": [\r\n        {\r\n            \"quantity\": 1,\r\n            \"productId\": 1\r\n        },\r\n        {\r\n            \"quantity\": 4,\r\n            \"productId\": 2\r\n        },\r\n        {\r\n            \"quantity\": 1,\r\n            \"productId\": 3\r\n        }\r\n    ],\r\n    \"orderStatus\": \"Placed\"\r\n}",
+					"raw": "{\r\n    \"customerId\":\"1\",\r\n    \"productDetails\": [\r\n        {\r\n            \"quantity\": 1,\r\n            \"productId\": 1\r\n        },\r\n        {\r\n            \"quantity\": 1,\r\n            \"productId\": 2\r\n        }\r\n    ],\r\n    \"orderStatus\": \"Placed\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -119,36 +89,14 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8000/order/add",
+					"raw": "http://localhost:8000/order",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "8000",
 					"path": [
-						"order",
-						"add"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Specific Product details",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "http://localhost:8000/product/details/4",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "8000",
-					"path": [
-						"product",
-						"details",
-						"4"
+						"order"
 					]
 				}
 			},
@@ -161,7 +109,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"id\": \"2\",\r\n    \"productName\": \"Trouser\",\r\n    \"quantity\": 8,\r\n    \"price\": \"580\",\r\n    \"category\": \"Premium\"\r\n}",
+					"raw": "{\r\n    \"id\": \"1\",\r\n    \"productName\": \"trouser\",\r\n    \"quantity\": -1,\r\n    \"price\": \"50\",\r\n    \"category\": \"Premium\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -169,15 +117,14 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8000/product/add",
+					"raw": "http://localhost:8000/product",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "8000",
 					"path": [
-						"product",
-						"add"
+						"product"
 					]
 				}
 			},

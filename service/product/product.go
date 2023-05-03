@@ -3,60 +3,55 @@ package service
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
-	"github.com/riteshgupta-josh/logger"
-	"github.com/riteshgupta-josh/models"
-	"github.com/riteshgupta-josh/validator"
+	"ecom/models"
+	"ecom/validator"
+
 	"github.com/spf13/cast"
 )
 
-var product = models.InitiateProductList()
+type Product struct {
+	productsDataStore *models.Product
+}
 
-func GetAllProductDetails(c *gin.Context) {
-
-	if product.ProductList != nil {
-		values := []models.ProductRequest{}
-		for _, value := range product.ProductList {
-			values = append(values, value)
-		}
-		c.JSON(http.StatusOK, values)
-	} else {
-		c.JSON(http.StatusBadRequest, "No Product added yet")
+func NewProduct() ProductIntf {
+	return &Product{
+		productsDataStore: models.InitiateProductList(),
 	}
 }
 
-func GetProductDetailsById(c *gin.Context) {
-	id := c.Param("id")
-	logger.I(id)
-	logger.I(product.ProductList)
+func (p *Product) GetAllProductDetails() []models.ProductRequest {
 
-	if _, ok := product.ProductList[id]; ok {
-		c.JSON(http.StatusOK, product.ProductList[id])
-	} else {
-		c.JSON(http.StatusBadRequest, "Product not found")
+	values := []models.ProductRequest{}
+	for _, value := range p.productsDataStore.ProductList {
+		values = append(values, value)
 	}
-
+	return values
 }
 
-func AddProductDetails(c *gin.Context) {
-	requestBody := models.ProductRequest{}
-	if err := c.BindJSON(&requestBody); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
-		return
-	}
-	logger.I(requestBody)
-	if _, ok := product.ProductList[cast.ToString(requestBody.Id)]; !ok {
-		if product.ProductList == nil {
-			product.ProductList = make(map[string]models.ProductRequest)
+func (p *Product) AddProductDetails(requestBody models.ProductRequest) models.AddProductResponse {
+
+	if _, ok := p.productsDataStore.ProductList[cast.ToString(requestBody.Id)]; !ok {
+		if p.productsDataStore.ProductList == nil {
+			p.productsDataStore.ProductList = make(map[string]models.ProductRequest)
 		}
 
 		if validator.ProductCategoryValid(requestBody.Category) {
-			product.ProductList[requestBody.Id] = requestBody
-			c.JSON(http.StatusOK, gin.H{"message": "Product added Successfully"})
+			p.productsDataStore.ProductList[requestBody.Id] = requestBody
+			return models.AddProductResponse{
+				Code:      http.StatusOK,
+				ProductId: requestBody.Id,
+				Msg:       "Product added Successfully",
+			}
 		} else {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid Product category"})
+			return models.AddProductResponse{
+				Code: http.StatusBadRequest,
+				Msg:  "Invalid Product category",
+			}
 		}
 	} else {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "Duplicate Product ID"})
+		return models.AddProductResponse{
+			Code: http.StatusBadRequest,
+			Msg:  "Duplicate Product ID",
+		}
 	}
 }

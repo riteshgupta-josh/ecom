@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/google/uuid"
 	"github.com/spf13/viper"
 )
 
@@ -19,4 +20,9 @@ func GetConfigValue(key string) string {
 		log.Fatalf("Not present")
 	}
 	return value
+}
+
+func GenerateUUID() string {
+	id := uuid.New()
+	return id.String()
 }
